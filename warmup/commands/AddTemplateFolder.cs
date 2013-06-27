@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
+
 using warmup.infrastructure;
 using warmup.infrastructure.console;
 using warmup.infrastructure.settings;
@@ -9,6 +11,10 @@ namespace warmup.commands
     [Command("addTemplateFolder")]
     public class AddTemplateFolder : ICommand
     {
+        [DllImport("kernel32.dll")]
+        static extern bool CreateSymbolicLink(string lpSymlinkFileName, string lpTargetFileName, int dwFlags); 
+        static int SYMLINK_FLAG_DIRECTORY = 1;
+
         public void Run(string[] args)
         {
             if (args == null || args.Length != 3)
@@ -27,9 +33,9 @@ namespace warmup.commands
             }
 
             var linkFolder = Path.Combine(templatesFolder, linkName);
-
+            
             Console.WriteLine("Generating symbolic link \"{0}\" pointing to \"{1}\"", linkFolder, targetPath);
-            CommandRunner.Run("cmd.exe", string.Format("/c mklink /d \"{0}\" \"{1}\"", linkFolder, targetPath), waitForExit: true, assertFullPath: false);
+            CreateSymbolicLink(linkFolder, targetPath, SYMLINK_FLAG_DIRECTORY);
         }
 
         public void ShowHelp()
